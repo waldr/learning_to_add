@@ -39,6 +39,7 @@ function to_data(code, var, output)
     table.insert(x, symbolsManager:get_symbol_idx(input:byte(j)))
   end
   for j = 1, #output do
+    -- TODO: is this cheating? Teacher forcing?
     table.insert(x, symbolsManager:get_symbol_idx(output:byte(j)))
     table.insert(y, symbolsManager:get_symbol_idx(output:byte(j)))
   end
@@ -72,9 +73,19 @@ function compose(hardness)
   return code, var, output
 end
 
-function get_operand(hardness)
+--function get_operand(hardness)
+--  if stack:is_empty() then
+--    local eval = random(math.pow(10, hardness()))
+--    local expr = string.format("%d", eval)
+--    return expr, eval
+--  else
+--    return unpack(stack:pop())
+--  end
+--end
+
+function get_operand(hard)
   if stack:is_empty() then
-    local eval = random(math.pow(10, hardness()))
+    local eval = random(math.pow(10, hard)) - 1
     local expr = string.format("%d", eval)
     return expr, eval
   else
@@ -82,15 +93,15 @@ function get_operand(hardness)
   end
 end
 
-function get_operands(hardness, nr)
-  local ret = {}
-  local perm = torch.randperm(nr)
-  for i = 1, nr do
-    local expr, eval = get_operand(hardness)
-    ret[perm[i]] = {expr=expr, eval=eval}
-  end
-  return unpack(ret)
-end
+--function get_operands(hardness, nr)
+--  local ret = {}
+--  local perm = torch.randperm(nr)
+--  for i = 1, nr do
+--    local expr, eval = get_operand(hardness)
+--    ret[perm[i]] = {expr=expr, eval=eval}
+--  end
+--  return unpack(ret)
+--end
 
 function get_data(state)
   make_deterministic(state.seed)

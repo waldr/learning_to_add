@@ -184,7 +184,7 @@ function show_predictions(state)
     state.pos = state.pos + 1
     local last_x = state.data.x[state.pos - 1][batch_idx]
     if state.pos > 1 and symbolsManager.idx2symbol[last_x] == "." then
-      if sample_idx >= 3 then
+      if sample_idx >= 10 then
         break
       end
       sample_idx = sample_idx + 1
@@ -210,8 +210,25 @@ function main()
   cmd:option('-target_nesting', 3, 'Nesting of the target expression.')
   -- Available strategies: baseline, naive, mix, blend.
   cmd:option('-strategy', 'blend', 'Scheduling strategy.')
+
+  cmd:option('-exp', '000', 'Experiment: (nocarry, padded, inverted).')
+
   cmd:text()
   local opt = cmd:parse(arg)
+
+  add_nocarry = false
+  add_padded = false
+  add_inverted = false
+  
+  if string.sub(opt.exp, 1, 1) == '1' then
+    add_nocarry = true
+  end
+  if string.sub(opt.exp, 2, 2) == '1' then
+    add_padded = true
+  end
+  if string.sub(opt.exp, 3, 3) == '1' then
+    add_inverted = true
+  end
 
   init_gpu(opt.gpuidx)
   params =      {batch_size=100,
@@ -305,8 +322,27 @@ function main()
     if step % 33 == 0 then
       collectgarbage()
     end 
+
+    ---- DEBUG
+    --if epoch > 5 then
+    --  break
+    --end
   end
   print("Training is over.")
+  
+  local num_exps = 15
+  print("\n----------------------------------------\n")
+  print(string.format("Running tests with length=%d\n", params.target_length + 1))
+  params.target_length = params.target_length + 1 
+  
+  for i = 1, num_exps do
+    state_test.seed = state_test.seed + 1
+    run_test(state_test)
+    print(string.format("Test accuracy=%.2f%%\n", 100.0 * state_test.acc))
+    show_predictions(state_test)
+    print("\n")
+  end
+
 end
 
 main()
